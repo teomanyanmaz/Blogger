@@ -1,0 +1,44 @@
+http:
+  port: 8080
+admin:
+  port: 9876
+  host: localhost
+apiEndpoints:
+  users:
+    host: localhost
+    paths: '/users'
+  posts:
+    host: localhost
+    paths: '/users/:id/posts'
+serviceEndpoints:
+  users:
+    url: 'http://localhost:4000/'
+  posts:
+    url: 'http://localhost:4001/'
+policies:
+  - basic-auth
+  - expression
+  - key-auth
+  - log
+  - oauth2
+  - proxy
+  - rate-limit
+pipelines:
+  users:
+    apiEndpoints:
+      - users
+    policies:
+    # Uncomment `key-auth:` when instructed to in the Getting Started guide.
+    # - key-auth:
+      - proxy:
+          - action:
+              serviceEndpoint: users 
+              changeOrigin: true
+  posts:
+    apiEndpoints:
+      - posts
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: posts
+              changeOrigin: true
