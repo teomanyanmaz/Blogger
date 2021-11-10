@@ -9,30 +9,47 @@ app.use(express.json());
 app.use(cors());
 
 app.get("/users", async (req, res) => {
-  const users = await User.find();
-  res.json(users);
+  User.find()
+    .then((data) => res.status(200).json(data))
+    .catch((err) => {
+      res.status(400).json({ message: err });
+    });
 });
 
 app.post("/users", async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, country } = req.body;
   const user = new User({
     username,
     password,
+    country,
   });
-  const savedUser = await user.save();
-  res.json(savedUser);
-});
-app.get("/users/:id", async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    res.json(user);
-  } catch (err) {
-    res.json({ message: err });
-  }
+  user
+    .save()
+    .then((data) => {
+      res.status(200).json(data);
+    })
+    .catch((err) => {
+      res.status(400).json({ message: err });
+    });
 });
 
 //app.delete to delete a user with remove
 // app.patch to update a user with updateOne
+
+app.patch("/users/:id", (req, res) => {
+  User.findByIdAndUpdate(req.params.id, {
+    $set: { username: req.body.username },
+  })
+    .then((user) => {
+      if (!user) {
+        res.status(400).send("User Not Found");
+      }
+      res.json(user);
+    })
+    .catch((err) => {
+      res.status(400).send({ message: err });
+    });
+});
 
 //Database Connection
 mongoose.connect("mongodb://localhost:27017/BloggerUsers", {
