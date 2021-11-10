@@ -2,25 +2,25 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const Post = require("./Post");
-const User = require("../users/User");
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
 //Posts of a user
-app.get("/users/:id/posts", (req, res) => {
-  Post.find({ userId: req.params.id })
-    .then((data) => {
-      if (data) {
+app.get("/users/:id/posts", async (req, res) => {
+  const userExist = await Post.exists({ userId: req.params.id });
+  if (!userExist) {
+    return res.status(400).send("User not found");
+  } else {
+    Post.find({ userId: req.params.id })
+      .then((data) => {
         res.status(200).json(data);
-      } else {
-        res.status(400).json({ message: "User not found" });
-      }
-    })
-    .catch((err) => {
-      res.status(400).json({ message: err.message });
-    });
+      })
+      .catch((err) => {
+        res.status(400).send(err);
+      });
+  }
 });
 
 app.post("/users/:id/posts", (req, res) => {
@@ -42,13 +42,9 @@ app.post("/users/:id/posts", (req, res) => {
 
 //all Posts
 app.get("/posts", (req, res) => {
-  Post.find()
-    .then((data) => {
-      res.status(200).json(data);
-    })
-    .catch((err) => {
-      res.status(400).json({ message: err });
-    });
+  Post.find().then((data) => {
+    res.status(200).json(data);
+  });
 });
 
 //Database Connection
